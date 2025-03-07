@@ -35,9 +35,9 @@
               </ul>
             </td>
             <td>
-              <div v-if="exam.results">
-                <p><strong class="text-success">Retroalimentación:</strong> {{ exam.results.feedback }}</p>
-                <p><strong class="text-success">Calificación:</strong> {{ exam.results.score }}</p>
+              <div v-if="exam.result">
+                <p><strong class="text-success">Retroalimentación:</strong> {{ exam.result.feedback }}</p>
+                <p><strong class="text-success">Calificación:</strong> {{ exam.result.score }}</p>
               </div>
               <div v-else class="text-muted">Sin resultados</div>
             </td>
@@ -57,82 +57,71 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-export default {
-  setup() {
-    const exams = ref([]);
-    const selectedExams = ref([]);
-    const loading = ref(true);
+const exams = ref([]);
+const selectedExams = ref([]);
+const loading = ref(true);
 
-    const fetchExams = async () => {
-      try {
-        const response = await axios.get('http://automatic-correction-backend.test/api/exams');
-        exams.value = response.data;
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los exámenes.',
-        });
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    const reviewSelected = async () => {
-      if (selectedExams.value.length === 0) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Advertencia',
-          text: 'Selecciona al menos un examen.',
-        });
-        return;
-      }
-
-      try {
-        const response = await axios.post('http://automatic-correction-backend.test/api/review-exams', {
-          exam_ids: selectedExams.value,
-        });
-        Swal.fire({
-          icon: 'success',
-          title: 'Resultados',
-          text: JSON.stringify(response.data),
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron revisar los exámenes.',
-        });
-      }
-    };
-
-    const reviewAll = () => {
-      selectedExams.value = exams.value.map(exam => exam.id);
-      Swal.fire({
-        icon: 'info',
-        title: 'Información',
-        text: 'Revisando todos los exámenes.',
-      });
-    };
-
-    onMounted(() => {
-      fetchExams();
+const fetchExams = async () => {
+  try {
+    const response = await axios.get('http://automatic-correction-backend.test/api/exams');
+    exams.value= response.data;
+    console.log(exams.value);
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron cargar los exámenes.',
     });
-
-    return {
-      exams,
-      selectedExams,
-      loading,
-      reviewSelected,
-      reviewAll,
-    };
-  },
+  } finally {
+    loading.value = false;
+  }
 };
+
+const reviewSelected = async () => {
+  if (selectedExams.value.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Advertencia',
+      text: 'Selecciona al menos un examen.',
+    });
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://automatic-correction-backend.test/api/review-exams', {
+      exam_ids: selectedExams.value,
+    });
+    Swal.fire({
+      icon: 'success',
+      title: 'Resultados',
+      text: JSON.stringify(response.data),
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron revisar los exámenes.',
+    });
+  }
+};
+
+const reviewAll = () => {
+  selectedExams.value = exams.value.map(exam => exam.id);
+  Swal.fire({
+    icon: 'info',
+    title: 'Información',
+    text: 'Revisando todos los exámenes.',
+  });
+};
+
+onMounted(() => {
+  fetchExams();
+});
 </script>
 
 <style scoped>
