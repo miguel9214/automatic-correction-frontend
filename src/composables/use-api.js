@@ -1,9 +1,16 @@
 import axios from 'axios';
 
 export const useApi = async function (url, method = 'GET', payload = {}) {
-    // Usar la variable de entorno
-    const baseUrl = import.meta.env.VITE_API_URL;
+    // Determinar automáticamente la URL base basada en el entorno actual
+    let baseUrl;
+    if (window.location.hostname === 'localhost' || window.location.hostname.includes('.test')) {
+        baseUrl = 'http://automatic-correction-backend.test/api';
+    } else {
+        baseUrl = 'https://automatic-correction-backend-production.up.railway.app/api';
+    }
+    
     const fullUrl = `${baseUrl}/${url}`;
+    console.log("URL utilizada:", fullUrl);
     
     try {
         let headers = {
@@ -26,10 +33,10 @@ export const useApi = async function (url, method = 'GET', payload = {}) {
         if (error.response) {
             const { status, data } = error.response;
             if (status === 401 || (status === 500 && data.message === "Token has expired")) {
-                localStorage.removeItem("access_token");
-                throw { status, data, redirect: true };
+                localStorage.removeItem("access_token"); // Elimina el token expirado o inválido
+                throw { status, data, redirect: true }; // Lanza un error con un flag de redirección
             } else {
-                throw data;
+                throw data; // Lanza el error para que sea manejado por el componente
             }
         } else {
             console.error("Error en la API:", error);
