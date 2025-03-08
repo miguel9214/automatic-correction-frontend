@@ -1,11 +1,13 @@
 <template>
   <header>
-    <!-- Navbar moderno con color verde -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
-      <div class="container-fluid">
-        <RouterLink to="/" class="navbar-brand fw-bold">Corrector de Exámenes</RouterLink>
+    <!-- Navbar moderno con diseño elegante -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+      <div class="container">
+        <RouterLink to="/" class="navbar-brand fw-bold d-flex align-items-center">
+          <i class="bi bi-journal-check me-2"></i> Corrector de Exámenes
+        </RouterLink>
         <button
-          class="navbar-toggler"
+          class="navbar-toggler border-0"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
@@ -15,8 +17,8 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+          <ul class="navbar-nav">
             <li class="nav-item">
               <RouterLink to="/" class="nav-link">Inicio</RouterLink>
             </li>
@@ -44,26 +46,57 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos personalizados */
+/* Estilos personalizados para un diseño moderno */
 .navbar {
-  padding: 1rem 0; /* Aumenta el padding para más espacio */
+  padding: 1rem;
+  background: linear-gradient(135deg, #28a745, #218838);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-brand {
-  font-size: 1.5rem; /* Tamaño más grande para el logo */
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
 }
 
 .nav-link {
-  font-size: 1.1rem; /* Tamaño más grande para los enlaces */
-  margin: 0 10px; /* Espacio entre los enlaces */
-  transition: color 0.3s ease; /* Transición suave para el hover */
+  font-size: 1.1rem;
+  margin: 0 12px;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  transition: width 0.3s ease-in-out;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 .nav-link:hover {
-  color: #d1fae5 !important; /* Color más claro al hacer hover */
+  color: #d4edda !important;
+}
+
+.navbar-toggler {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
 }
 
 main {
-  margin-top: 80px; /* Ajusta el margen superior para que el contenido no se solape con el nav */
+  margin-top: 80px;
 }
 </style>

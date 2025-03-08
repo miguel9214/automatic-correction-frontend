@@ -1,63 +1,65 @@
 <template>
   <div class="container mt-5">
-    <h1 class="text-success mb-4">Realizar Prueba</h1>
+    <div class="card shadow-lg p-4">
+      <h1 class="text-success mb-4 text-center">📘 Realizar Prueba</h1>
 
-    <!-- Botón para subir el archivo CSV -->
-    <div class="mb-4">
-      <input type="file" @change="handleFileUpload" accept=".csv" class="form-control" />
-    </div>
+      <!-- Nombre del estudiante -->
+      <div class="mb-4">
+        <label class="form-label">Nombre del Estudiante</label>
+        <input type="text" v-model="studentName" class="form-control" placeholder="Escribe tu nombre" />
+      </div>
 
-    <!-- Spinner de carga -->
-    <div v-if="loading" class="text-center">
-      <div class="spinner-border text-success" role="status">
-        <span class="visually-hidden">Cargando...</span>
+      <!-- Carga de archivo CSV -->
+      <div class="mb-4">
+        <label class="form-label">Subir Archivo CSV</label>
+        <input type="file" @change="handleFileUpload" accept=".csv" class="form-control" />
+      </div>
+
+      <!-- Spinner de carga -->
+      <div v-if="loading" class="text-center my-3">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Formulario de preguntas -->
+      <div v-else>
+        <form @submit.prevent="submitTest">
+          <div v-for="(question, index) in questions" :key="index" class="mb-4">
+            <div class="card p-3 shadow-sm">
+              <h5 class="text-success">{{ question }}</h5>
+              <textarea
+                v-model="answers[index]"
+                class="form-control"
+                rows="3"
+                :placeholder="`Escribe tu respuesta para: ${question}`"
+              ></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success w-100" :disabled="loadingSubmit">
+            <span v-if="loadingSubmit" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Enviar Respuestas
+          </button>
+        </form>
       </div>
     </div>
 
-    <!-- Formulario para responder preguntas -->
-    <div v-else>
-      <form @submit.prevent="submitTest">
-        <div v-for="(question, index) in questions" :key="index" class="mb-4">
-          <h5 class="text-success">{{ question }}</h5>
-          <textarea
-            v-model="answers[index]"
-            class="form-control"
-            rows="3"
-            :placeholder="`Escribe tu respuesta para: ${question}`"
-          ></textarea>
-          <!-- Retroalimentación debajo de cada pregunta -->
-          <div v-if="results && results.feedback[index]" class="mt-2">
-            <strong class="text-success">Retroalimentación:</strong>
-            <p>{{ results.feedback[index] }}</p>
-            <p :class="results.isCorrect[index] ? 'text-success' : 'text-danger'">
-              {{ results.isCorrect[index] ? "Correcta" : "Incorrecta" }}
-            </p>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-success">Enviar Respuestas</button>
-      </form>
-
-      <!-- Card para mostrar los resultados -->
-      <div v-if="results" class="card mt-5">
-        <div class="card-header bg-success text-white">
-          <h3 class="card-title mb-0">Resultados de la Prueba</h3>
-        </div>
-        <div class="card-body">
-          <p><strong>Calificación:</strong> {{ results.score }}%</p>
-          <p><strong>Resumen:</strong></p>
-          <ul>
-            <li>Correctas: {{ results.correctAnswers }}</li>
-            <li>Incorrectas: {{ results.incorrectAnswers }}</li>
-          </ul>
-          <hr />
-          <h5 class="text-success">Detalles por Pregunta:</h5>
-          <div v-for="(question, index) in questions" :key="index" class="mb-3">
-            <p><strong>{{ question }}</strong></p>
-            <p>{{ results.feedback[index] }}</p>
-            <p :class="results.isCorrect[index] ? 'text-success' : 'text-danger'">
-              {{ results.isCorrect[index] ? "Correcta" : "Incorrecta" }}
-            </p>
-          </div>
+    <!-- Resultados -->
+    <div v-if="results" class="card mt-5 shadow-lg">
+      <div class="card-header bg-success text-white">
+        <h3 class="card-title mb-0">📊 Resultados de la Prueba</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>Calificación:</strong> {{ results.score }}%</p>
+        <p><strong>Correctas:</strong> {{ results.correctAnswers }}</p>
+        <p><strong>Incorrectas:</strong> {{ results.incorrectAnswers }}</p>
+        <hr />
+        <h5 class="text-success">Detalles por Pregunta:</h5>
+        <div v-for="(question, index) in questions" :key="index" class="mb-3">
+          <p><strong>{{ question }}</strong></p>
+          <p :class="results.isCorrect[index] ? 'text-success' : 'text-danger'">
+            {{ results.isCorrect[index] ? "✔ Correcta" : "❌ Incorrecta" }}
+          </p>
         </div>
       </div>
     </div>
@@ -68,129 +70,88 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { parse } from 'papaparse'; // Librería para leer archivos CSV
+import { parse } from 'papaparse';
 
-const questions = ref([]); // Preguntas cargadas desde el CSV
-const answers = ref([]); // Respuestas del usuario
-const results = ref(null); // Resultados de la corrección
-const loading = ref(false); // Estado de carga
+const studentName = ref('');
+const questions = ref([]);
+const answers = ref([]);
+const results = ref(null);
+const loading = ref(false);
+const loadingSubmit = ref(false);
 
-// Manejar la subida del archivo CSV
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
-  if (file) {
-    loading.value = true; // Activar el spinner de carga
-    parse(file, {
-      complete: (result) => {
-        questions.value = result.data.slice(0, 10).map((row) => row[0]); // Limitar a 10 preguntas
-        answers.value = new Array(questions.value.length).fill(''); // Inicializa las respuestas
-        loading.value = false; // Desactivar el spinner de carga
-      },
-      header: false, // No usar la primera fila como encabezado
-      error: (error) => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo leer el archivo CSV.',
-        });
-        loading.value = false; // Desactivar el spinner de carga
-      },
-    });
-  }
+  if (!file) return;
+
+  loading.value = true;
+  parse(file, {
+    complete: (result) => {
+      questions.value = result.data.slice(0, 10).map((row) => row[0]);
+      answers.value = new Array(questions.value.length).fill('');
+      loading.value = false;
+    },
+    header: false,
+    error: () => {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo leer el archivo CSV.' });
+      loading.value = false;
+    },
+  });
 };
 
-// Enviar las respuestas para su corrección
 const submitTest = async () => {
+  if (!studentName.value.trim()) {
+    Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Ingresa el nombre del estudiante.' });
+    return;
+  }
   if (answers.value.some((answer) => answer.trim() === '')) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Advertencia',
-      text: 'Por favor, responde todas las preguntas.',
-    });
+    Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Responde todas las preguntas.' });
     return;
   }
 
   try {
-    // Formatear las preguntas y respuestas para enviar al backend
-    const examData = {
-      student_name: 'Usuario', // Puedes cambiar esto para capturar el nombre del usuario
-      questions: questions.value.map((question, index) => ({
-        question: question,
-        answer: answers.value[index],
-      })),
-    };
-
-    // Enviar las respuestas al backend
+    loadingSubmit.value = true;
     const response = await axios.post('http://automatic-correction-backend.test/api/upload-exams', {
-      exams: [examData], // Envía un array con un solo examen
+      exams: [{
+        student_name: studentName.value,
+        questions: questions.value.map((question, index) => ({
+          question,
+          answer: answers.value[index],
+        })),
+      }],
     });
 
-    // Procesar los resultados
-    const resultData = response.data[0]; // Asume que el backend devuelve un array con un solo resultado
-    const feedbackLines = resultData.feedback.split('\n'); // Dividir la retroalimentación por líneas
+    if (response.data.success && response.data.data.length > 0) {
+      const resultData = response.data.data[0];
+      const evaluations = resultData.feedback.evaluations || [];
+      
+      const isCorrect = evaluations.map(e => e.is_correct);
 
-    // Asignar retroalimentación a cada pregunta (solo las primeras 10 líneas)
-    const feedback = feedbackLines.slice(0, 10); // Limitar a 10 líneas
-    const isCorrect = feedback.map((line) => !line.toLowerCase().includes('incorrecta')); // Determinar si es correcta
+      results.value = {
+        score: ((isCorrect.filter(Boolean).length / questions.value.length) * 100).toFixed(2),
+        correctAnswers: isCorrect.filter(Boolean).length,
+        incorrectAnswers: questions.value.length - isCorrect.filter(Boolean).length,
+        isCorrect,
+      };
 
-    // Calcular el puntaje
-    const correctAnswers = isCorrect.filter((correct) => correct).length;
-    const incorrectAnswers = questions.value.length - correctAnswers;
-    const score = ((correctAnswers / questions.value.length) * 100).toFixed(2);
-
-    results.value = {
-      score: score, // Calificación en porcentaje
-      correctAnswers: correctAnswers, // Número de respuestas correctas
-      incorrectAnswers: incorrectAnswers, // Número de respuestas incorrectas
-      feedback: feedback, // Retroalimentación por pregunta
-      isCorrect: isCorrect, // Estado de cada respuesta
-    };
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Prueba Enviada',
-      text: 'Tu prueba ha sido calificada correctamente.',
-    });
+      Swal.fire({ icon: 'success', title: 'Prueba Enviada', text: 'Tu prueba ha sido calificada.' });
+    } else {
+      throw new Error('Respuesta inválida del servidor');
+    }
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo enviar la prueba.',
-    });
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar la prueba.' });
+  } finally {
+    loadingSubmit.value = false;
   }
 };
 </script>
 
 <style scoped>
-/* Estilos personalizados */
-.form-control {
-  margin-top: 10px;
-}
-
-.btn-success {
-  background-color: #28a745; /* Verde más oscuro para el botón */
-  border-color: #28a745;
-}
-
-.btn-success:hover {
-  background-color: #218838; /* Verde más oscuro al hacer hover */
-  border-color: #218838;
-}
-
-.text-success {
-  color: #28a745 !important; /* Verde para los textos destacados */
-}
-
-.text-danger {
-  color: #dc3545 !important; /* Rojo para los textos de error */
-}
-
-.card {
-  border: 1px solid #28a745; /* Borde verde para la card */
-}
-
-.card-header {
-  background-color: #28a745; /* Fondo verde para el encabezado de la card */
-  color: white; /* Texto blanco */
-}
+.form-control { margin-top: 10px; border-radius: 10px; }
+.btn-success { background-color: #28a745; border-radius: 10px; border: none; }
+.btn-success:hover { background-color: #218838; }
+.text-success { color: #28a745 !important; }
+.text-danger { color: #dc3545 !important; }
+.card { border-radius: 15px; }
+.card-header { background-color: #28a745; color: white; border-radius: 15px 15px 0 0; }
+.shadow-lg { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important; }
 </style>
