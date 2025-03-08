@@ -1,23 +1,25 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import App from './App.vue';
-import router from './router'; // Importa el router
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importa el CSS de Bootstrap
-import 'bootstrap'; // Importa el JS de Bootstrap (opcional)
-import axios from 'axios'; // Importa Axios
-import Swal from 'sweetalert2'; // Importa SweetAlert2
+import router from './router';
+import { useAuthStore } from './stores/auth'; // ✅ Importa el store
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap';
+import Swal from 'sweetalert2';
 
-// Configura Axios (opcional)
-// axios.defaults.baseURL = 'http://automatic-correction-backend.test/api'; // Establece la URL base para las solicitudes
-// axios.defaults.headers.common['Accept'] = 'application/json'; // Establece los headers por defecto
-
-// Crea la aplicación Vue
+// ✅ Crea Pinia y la app
+const pinia = createPinia();
 const app = createApp(App);
 
-// Usa el router
+app.use(pinia);
 app.use(router);
 
-// Configura SweetAlert2 como global (opcional)
+// ✅ Inicializa la autenticación antes de montar la app
+const authStore = useAuthStore();
+authStore.initializeAuth(); // 🔥 Recupera el token al iniciar
+
+// ✅ Configura SweetAlert2 globalmente
 app.config.globalProperties.$swal = Swal;
 
-// Monta la aplicación en el elemento con id 'app'
 app.mount('#app');
+

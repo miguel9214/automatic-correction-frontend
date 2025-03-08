@@ -68,9 +68,9 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { parse } from 'papaparse';
+import { useApi } from '../composables/use-api';
 
 const studentName = ref('');
 const questions = ref([]);
@@ -110,21 +110,22 @@ const submitTest = async () => {
 
   try {
     loadingSubmit.value = true;
-    const response = await axios.post('http://automatic-correction-backend.test/api/upload-exams', {
-      exams: [{
-        student_name: studentName.value,
-        questions: questions.value.map((question, index) => ({
-          question,
-          answer: answers.value[index],
-        })),
-      }],
+    const response = await useApi('upload-exams', 'POST', {
+      exams: [
+        {
+          student_name: studentName.value,
+          questions: questions.value.map((question, index) => ({
+            question,
+            answer: answers.value[index],
+          })),
+        },
+      ],
     });
 
-    if (response.data.success && response.data.data.length > 0) {
-      const resultData = response.data.data[0];
+    if (response.success && response.data.length > 0) {
+      const resultData = response.data[0];
       const evaluations = resultData.feedback.evaluations || [];
-      
-      const isCorrect = evaluations.map(e => e.is_correct);
+      const isCorrect = evaluations.map((e) => e.is_correct);
 
       results.value = {
         score: ((isCorrect.filter(Boolean).length / questions.value.length) * 100).toFixed(2),

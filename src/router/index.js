@@ -1,29 +1,32 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue'; // Importa la vista de inicio
-import ExamsView from '../views/ExamsView.vue'; // Importa la vista de exámenes
-import TestComponent from '../components/UploadTestComponent.vue';
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../stores/auth"; // Importa el store de autenticación
+import HomeView from "../views/HomeView.vue";
+import ExamsView from "../views/ExamsView.vue";
+import TestComponent from "../components/UploadTestComponent.vue";
+import Login from "../components/Login.vue";
+import Register from "../components/Register.vue";
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView,
-  },
-  {
-    path: '/exams',
-    name: 'exams',
-    component: ExamsView,
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: TestComponent,
-  },
+  { path: "/", name: "Login", component: Login },
+  { path: "/register", name: "Register", component: Register },
+  { path: "/home", name: "home", component: HomeView, meta: { requiresAuth: true } },
+  { path: "/exams", name: "exams", component: ExamsView, meta: { requiresAuth: true } },
+  { path: "/test", name: "test", component: TestComponent, meta: { requiresAuth: true } },
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+
+// Verifica la autenticación antes de cada navegación
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next("/"); // Si no está autenticado, redirige al login
+  } else {
+    next();
+  }
 });
 
 export default router;

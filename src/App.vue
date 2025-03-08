@@ -1,11 +1,13 @@
 <template>
-  <header>
-    <!-- Navbar moderno con diseño elegante -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+  <header v-if="shouldShowNavbar">
+    <nav class="navbar navbar-expand-lg bg-success navbar-dark shadow-lg fixed-top">
       <div class="container">
-        <RouterLink to="/" class="navbar-brand fw-bold d-flex align-items-center">
+        <!-- LOGO -->
+        <RouterLink to="/home" class="navbar-brand fw-bold d-flex align-items-center">
           <i class="bi bi-journal-check me-2"></i> Corrector de Exámenes
         </RouterLink>
+
+        <!-- BOTÓN PARA COLAPSAR NAV EN MÓVILES -->
         <button
           class="navbar-toggler border-0"
           type="button"
@@ -17,10 +19,12 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
+
+        <!-- MENÚ NAVEGACIÓN -->
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul class="navbar-nav">
+          <ul class="navbar-nav align-items-center">
             <li class="nav-item">
-              <RouterLink to="/" class="nav-link">Inicio</RouterLink>
+              <RouterLink to="/home" class="nav-link">Inicio</RouterLink>
             </li>
             <li class="nav-item">
               <RouterLink to="/exams" class="nav-link">Exámenes</RouterLink>
@@ -28,75 +32,89 @@
             <li class="nav-item">
               <RouterLink to="/test" class="nav-link">Realizar pruebas</RouterLink>
             </li>
+
+            <!-- PERFIL Y CERRAR SESIÓN -->
+            <li class="nav-item dropdown ms-3">
+              <a
+                class="nav-link dropdown-toggle d-flex align-items-center"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-person-circle me-1 fs-5"></i> Mi Cuenta
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <button @click="logout" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                  </button>
+                </li>
+              </ul>
+            </li>
+
           </ul>
         </div>
       </div>
     </nav>
   </header>
 
-  <main class="container mt-5 pt-4">
+  <!-- ✅ Agregamos margen arriba para que el contenido no quede oculto -->
+  <main class="container mt-5 pt-5">
     <RouterView />
   </main>
 </template>
 
 <script>
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+
 export default {
-  name: 'App',
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const authStore = useAuthStore();
+
+    // Ocultar Navbar en Login y Registro
+    const shouldShowNavbar = computed(() => authStore.isAuthenticated && !["/", "/register"].includes(route.path));
+
+    // Función para cerrar sesión
+    const logout = () => {
+      authStore.logout();
+      router.push("/"); // Redirige al login después de cerrar sesión
+    };
+
+    return { shouldShowNavbar, logout };
+  },
 };
 </script>
 
-<style scoped>
-/* Estilos personalizados para un diseño moderno */
-.navbar {
-  padding: 1rem;
-  background: linear-gradient(135deg, #28a745, #218838);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+<style>
+/* ✅ Estilos para modernizar */
+.navbar-nav .nav-link {
+  transition: color 0.3s ease-in-out;
+  font-size: 1rem;
+}
+.navbar-nav .nav-link:hover {
+  color: #d4edda !important; /* Verde claro */
+}
+.dropdown-menu {
+  min-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.dropdown-item {
+  transition: background 0.3s ease;
+  font-size: 0.95rem;
+}
+.dropdown-item:hover {
+  background: #f8d7da; /* Rojo suave */
 }
 
-.navbar-brand {
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
-}
-
-.nav-link {
-  font-size: 1.1rem;
-  margin: 0 12px;
-  transition: all 0.3s ease-in-out;
-  position: relative;
-}
-
-.nav-link::after {
-  content: "";
-  display: block;
-  width: 0;
-  height: 2px;
-  background: #fff;
-  transition: width 0.3s ease-in-out;
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
-
-.nav-link:hover {
-  color: #d4edda !important;
-}
-
-.navbar-toggler {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 8px;
-  border-radius: 4px;
-}
-
-.navbar-toggler:focus {
-  box-shadow: none;
-}
-
+/* ✅ Evita que el contenido quede oculto detrás del navbar fijo */
 main {
-  margin-top: 80px;
+  padding-top: 80px;
 }
 </style>
