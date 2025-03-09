@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
       <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
         <h2 class="text-center mb-4">Iniciar Sesión</h2>
         <form @submit.prevent="login">
@@ -44,7 +44,7 @@
   
   <script>
   import { useApi } from "../composables/use-api";
-  import { useAuthStore } from "../stores/auth"; // 🔥 Importa el store de autenticación
+  import { useAuthStore } from "../stores/auth";
   
   export default {
     data() {
@@ -68,7 +68,7 @@
           // Guardar el token en localStorage
           localStorage.setItem("access_token", response.access_token);
   
-          // 🔥 Actualizar el store de autenticación
+          // Actualizar el store de autenticación
           const authStore = useAuthStore();
           authStore.login(response.access_token);
   
@@ -97,10 +97,9 @@
   </script>
   
   <style scoped>
-  /* Alineación centrada en toda la página */
+  /* Estilos generales */
   .d-flex {
-    min-height: 100vh;
-    padding: 20px; /* Añade padding para móviles */
+    min-height: 100vh; /* Usamos min-height en lugar de height */
   }
   
   /* Estilo de la tarjeta de inicio de sesión */

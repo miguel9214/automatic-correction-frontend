@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
       <h2 class="text-center mb-4">Regístrate</h2>
       <form @submit.prevent="register">
@@ -37,6 +37,11 @@
           />
         </div>
         <button type="submit" class="btn btn-success w-100">Registrarse</button>
+
+        <!-- Mensaje de error -->
+        <div v-if="errorMessage" class="alert alert-danger mt-3 text-center">
+          {{ errorMessage }}
+        </div>
       </form>
 
       <p class="text-center mt-3">
@@ -56,10 +61,12 @@ export default {
       name: '',
       email: '',
       password: '',
+      errorMessage: '',
     };
   },
   methods: {
     async register() {
+      this.errorMessage = '';
       try {
         const response = await useApi('auth/register', 'post', {
           name: this.name,
@@ -93,8 +100,7 @@ export default {
 <style scoped>
 /* Alineación centrada en toda la página */
 .d-flex {
-  min-height: 100vh;
-  padding: 20px; /* Añade padding para móviles */
+  min-height: 100vh; /* Usamos min-height en lugar de height */
 }
 
 /* Estilo de la tarjeta de registro */
@@ -145,6 +151,12 @@ p {
   font-size: 0.9rem;
 }
 
+/* Estilo del mensaje de error */
+.alert-danger {
+  font-size: 0.9rem;
+  padding: 10px;
+}
+
 /* Ajustes para pantallas pequeñas (móviles) */
 @media (max-width: 767.98px) {
   h2 {
@@ -163,6 +175,11 @@ p {
 
   p {
     font-size: 0.8rem; /* Tamaño más pequeño para móviles */
+  }
+
+  .alert-danger {
+    font-size: 0.8rem; /* Tamaño más pequeño para móviles */
+    padding: 8px; /* Menos padding en móviles */
   }
 }
 
@@ -184,6 +201,11 @@ p {
 
   p {
     font-size: 0.75rem; /* Tamaño más pequeño para móviles pequeños */
+  }
+
+  .alert-danger {
+    font-size: 0.75rem; /* Tamaño más pequeño para móviles pequeños */
+    padding: 6px; /* Menos padding en móviles pequeños */
   }
 }
 </style>
