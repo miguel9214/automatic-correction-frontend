@@ -146,11 +146,74 @@ const reviewAll = () => {
 onMounted(fetchExams);
 </script>
 
-<style>
+<style scoped>
+/* Estilos generales */
+.container {
+  padding: 20px;
+}
+
 .card {
   transition: transform 0.3s ease-in-out;
+  margin-bottom: 20px;
 }
 .card:hover {
   transform: scale(1.02);
+}
+
+/* Estilos para el título */
+h1 {
+  font-size: 2rem;
+}
+
+/* Estilos para el input de búsqueda */
+.form-control {
+  max-width: 100%; /* Asegura que el input no se salga del contenedor en móviles */
+}
+
+/* Estilos para la lista de preguntas */
+.list-group-item {
+  padding: 10px;
+}
+
+/* Estilos para los botones */
+.btn {
+  font-size: 1rem;
+  padding: 8px 16px;
+}
+
+/* Ajustes para pantallas pequeñas (móviles) */
+@media (max-width: 767.98px) {
+  h1 {
+    font-size: 1.8rem; /* Tamaño más pequeño para móviles */
+  }
+
+  .form-control {
+    width: 100%; /* El input ocupa todo el ancho en móviles */
+  }
+
+  .card {
+    margin-bottom: 15px;
+  }
+
+  .btn {
+    font-size: 0.9rem; /* Tamaño más pequeño para móviles */
+    padding: 6px 12px;
+  }
+}
+
+/* Ajustes adicionales para pantallas muy pequeñas */
+@media (max-width: 575.98px) {
+  h1 {
+    font-size: 1.5rem; /* Tamaño más pequeño para móviles pequeños */
+  }
+
+  .card {
+    margin-bottom: 10px;
+  }
+
+  .btn {
+    font-size: 0.8rem; /* Tamaño más pequeño para móviles pequeños */
+    padding: 5px 10px;
+  }
 }
 </style>

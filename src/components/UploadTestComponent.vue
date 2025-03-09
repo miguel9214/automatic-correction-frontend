@@ -15,6 +15,20 @@
         <input type="file" @change="handleFileUpload" accept=".csv" class="form-control" />
       </div>
 
+      <!-- Ingreso de preguntas por texto -->
+      <div class="mb-4">
+        <label class="form-label">Pegar Preguntas (una por línea)</label>
+        <textarea
+          v-model="textQuestions"
+          class="form-control"
+          rows="5"
+          placeholder="Pega las preguntas aquí, una por línea..."
+        ></textarea>
+        <button @click="loadQuestionsFromText" class="btn btn-secondary mt-2 w-100">
+          Cargar Preguntas desde Texto
+        </button>
+      </div>
+
       <!-- Spinner de carga -->
       <div v-if="loading" class="text-center my-3">
         <div class="spinner-border text-success" role="status">
@@ -73,12 +87,14 @@ import { parse } from 'papaparse';
 import { useApi } from '../composables/use-api';
 
 const studentName = ref('');
-const questions = ref([]);
-const answers = ref([]);
-const results = ref(null);
-const loading = ref(false);
-const loadingSubmit = ref(false);
+const textQuestions = ref(''); // Almacena el texto de las preguntas
+const questions = ref([]); // Almacena las preguntas cargadas
+const answers = ref([]); // Almacena las respuestas del usuario
+const results = ref(null); // Almacena los resultados de la prueba
+const loading = ref(false); // Estado de carga (para archivos CSV)
+const loadingSubmit = ref(false); // Estado de carga (para enviar respuestas)
 
+// Maneja la carga de un archivo CSV
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -86,8 +102,8 @@ const handleFileUpload = (event) => {
   loading.value = true;
   parse(file, {
     complete: (result) => {
-      questions.value = result.data.slice(0, 10).map((row) => row[0]);
-      answers.value = new Array(questions.value.length).fill('');
+      questions.value = result.data.slice(0, 10).map((row) => row[0]); // Limita a 10 preguntas
+      answers.value = new Array(questions.value.length).fill(''); // Inicializa las respuestas
       loading.value = false;
     },
     header: false,
@@ -98,6 +114,24 @@ const handleFileUpload = (event) => {
   });
 };
 
+// Carga las preguntas desde el texto ingresado
+const loadQuestionsFromText = () => {
+  if (!textQuestions.value.trim()) {
+    Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Ingresa las preguntas.' });
+    return;
+  }
+
+  // Divide el texto en líneas, elimina espacios vacíos y filtra líneas vacías
+  questions.value = textQuestions.value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  // Inicializa las respuestas con un arreglo vacío del mismo tamaño que las preguntas
+  answers.value = new Array(questions.value.length).fill('');
+};
+
+// Envía las respuestas al servidor
 const submitTest = async () => {
   if (!studentName.value.trim()) {
     Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Ingresa el nombre del estudiante.' });
@@ -127,6 +161,7 @@ const submitTest = async () => {
       const evaluations = resultData.feedback.evaluations || [];
       const isCorrect = evaluations.map((e) => e.is_correct);
 
+      // Calcula los resultados
       results.value = {
         score: ((isCorrect.filter(Boolean).length / questions.value.length) * 100).toFixed(2),
         correctAnswers: isCorrect.filter(Boolean).length,
