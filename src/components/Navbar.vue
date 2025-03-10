@@ -32,7 +32,7 @@
                 <RouterLink to="/test" class="nav-link" @click="closeNavbar">Realizar pruebas</RouterLink>
               </li>
               <li class="nav-item">
-                <RouterLink to="/question" class="nav-link" @click="closeNavbar">Habla con deepseek</RouterLink>
+                <RouterLink to="/question" class="nav-link" @click="closeNavbar">Generar preguntas</RouterLink>
               </li>
   
               <!-- PERFIL Y CERRAR SESIÓN -->
