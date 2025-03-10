@@ -31,6 +31,9 @@
               <li class="nav-item">
                 <RouterLink to="/test" class="nav-link" @click="closeNavbar">Realizar pruebas</RouterLink>
               </li>
+              <li class="nav-item">
+                <RouterLink to="/question" class="nav-link" @click="closeNavbar">Habla con deepseek</RouterLink>
+              </li>
   
               <!-- PERFIL Y CERRAR SESIÓN -->
               <li class="nav-item dropdown ms-3">
